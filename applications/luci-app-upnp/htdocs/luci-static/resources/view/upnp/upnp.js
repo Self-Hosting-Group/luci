@@ -141,21 +141,24 @@ return view.extend({
 		o = s.taboption('setup', form.Flag, 'enable_upnp', _('Enable UPnP IGD protocol'));
 		o.default = '1';
 
-		o = s.taboption('setup', form.Flag, 'enable_natpmp', _('Enable PCP/NAT-PMP protocols'));
+		o = s.taboption('setup', form.Flag, 'enable_pcp_pmp', _('Enable PCP/NAT-PMP protocols'));
 		o.default = '1';
 
-		o = s.taboption('setup', form.Flag, 'igdv1', _('UPnP IGDv1 compatibility mode'),
-			_('Advertise as IGDv1 (IPv4 only) device instead of IGDv2'));
-		o.default = '1';
-		o.rmempty = false;
+		o = s.taboption('setup', form.ListValue, 'upnp_igd_compat', _('UPnP IGD compatibility mode'),
+			_('Report as different device to workaround/assist/mignate/pretend IGDv2 incompatible clients'));
+		o.value('igdv1', _('IGDv1 (IPv4 only)'));
+		o.value('igdv2', _('IGDv2'));
+		o.default = 'igdv1';
 		o.depends('enable_upnp', '1');
 
-		o = s.taboption('setup', form.Value, 'download', _('Download speed'),
-			_('Report maximum download speed in kByte/s'));
+		o = s.taboption('setup', form.Value, 'download_kbps', _('Download speed'),
+			_('Report maximum download speed in kbit/s'));
+		o.placeholder = 'Default interface link speed';
 		o.depends('enable_upnp', '1');
 
-		o = s.taboption('setup', form.Value, 'upload', _('Upload speed'),
-			_('Report maximum upload speed in kByte/s'));
+		o = s.taboption('setup', form.Value, 'upload_kbps', _('Upload speed'),
+			_('Report maximum upload speed in kbit/s'));
+		o.placeholder = 'Default interface link speed';
 		o.depends('enable_upnp', '1');
 
 		s.taboption('advanced', form.Flag, 'use_stun', _('Use %s', 'Use %s (%s = STUN)')
@@ -171,10 +174,8 @@ return view.extend({
 		o.datatype = 'port';
 		o.placeholder = '3478';
 
-		o = s.taboption('advanced', form.Flag, 'secure_mode', _('Enable secure mode'),
-			_('Allow adding port maps for requesting IP addresses only'));
-		o.default = '1';
-		o.depends('enable_upnp', '1');
+		o = s.taboption('advanced', form.Flag, 'allow_third_party_mapping', _('Allow third-party mapping'),
+			_('Allow adding port maps for non-requesting IP addresses'));
 
 		o = s.taboption('advanced', form.Value, 'notify_interval', _('Notify interval'),
 			_('A 900s interval will result in %s notifications with the minimum max-age of 1800s', 'A 900s interval will result in %s (%s = SSDP) notifications with the minimum max-age of 1800s')
@@ -210,10 +211,9 @@ return view.extend({
 			_('Puts extra debugging information into the system log'));
 
 		o = s.taboption('advanced', form.Value, 'upnp_lease_file', _('Service lease file'));
-		o.placeholder = '/var/run/miniupnpd.leases';
 
 		s = m.section(form.GridSection, 'perm_rule', _('Service Access Control List'),
-			_('ACL specify which client addresses and ports can be mapped, IPv6 always allowed.'));
+			_('ACL specify which client addresses and ports can be mapped. Denied by default, IPv6 is always allowed.'));
 		s.sortable = true;
 		s.anonymous = true;
 		s.addremove = true;
